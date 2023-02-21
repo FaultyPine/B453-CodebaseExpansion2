@@ -77,6 +77,7 @@ onready var nRcTargetGravity:RayCast2D = $rcTargetGravity
 onready var nRcFloorCheck:RayCast2D = $rcFloorCheck
 onready var nArea2d:Area2D = $area2D
 onready var nSpriteAmogus:Sprite = $spriteAmogus
+onready var JumpPredictor = $JumpPredictor
 
 func _ready() -> void:
 	bCanFlip = global.bPlayerCanFlip
@@ -92,6 +93,9 @@ func _ready() -> void:
 #
 	vInitialGlobalPosition = self.global_position
 	set_physics_process(true)
+func _process(_d):
+	if Input.is_action_pressed("ui_cancel"):
+		get_tree().quit()
 
 func _physics_process(delta: float) -> void:
 #	if Input.is_action_just_pressed('ui_debug'):
@@ -187,6 +191,7 @@ func fnStateIdle(delta: float) -> void:
 	
 	vVelocity = move_and_slide(vVelocity, -vGravity.normalized())
 	
+	
 	if !self.is_on_floor():
 		self.state = States.OnAir
 		return
@@ -194,20 +199,24 @@ func fnStateIdle(delta: float) -> void:
 	if Input.is_action_just_pressed("btn_main"):
 		self.state = States.Moving
 		return
+
 		
 func fnStateMoving(delta: float) -> void:
 	vVelocity = fSpeed * Vector2(1,0).rotated(self.rotation)
 	vVelocity += vGravity*fGravity*delta
 	vVelocity = move_and_slide(vVelocity, -vGravity.normalized())
-	
+
 	if vVelocity != Vector2():
 		nSprite.visible = true
 		nSpriteAmogus.visible = false
+		# Grayson: Toggle jump predictor on when moving
+		JumpPredictor.visible = true
+		JumpPredictor.SetJumpEndingPos(delta, global_position, vVelocity, vGravity, fGravity, fJumpForce)
 		
 	if Input.is_action_just_released("btn_main"):
+		JumpPredictor.visible = false
 		jump()
 		self.state = States.OnAir
-		return
 		
 func fnStateOnAir(_delta: float) -> void:
 	vVelocity = move_and_slide(vVelocity, -vGravity.normalized())
@@ -301,6 +310,7 @@ func createJumpDust() -> void:
 
 func jump(fMultiplier:float = 1) -> void:
 	bJumped = true
+	# apply jump velocity
 	self.vVelocity -= vGravity * fJumpForce * fMultiplier
 	twnSquish()
 	createJumpDust()
