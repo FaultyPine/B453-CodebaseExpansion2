@@ -1,5 +1,7 @@
 extends Node2D
 
+onready var playerRoot = get_node("../")
+
 #var curve: Curve2D = Curve2D.new()
 var points = []
 
@@ -31,17 +33,15 @@ func SetJumpEndingPos(delta: float, pos: Vector2, vVelocity: Vector2, vGravity: 
 		# instead of move_and_slide just increment the pos
 		current_pos_iter += vVelocity*delta
 		points.append(current_pos_iter)
-		var result = space_state.intersect_ray(pos, current_pos_iter)
+		var result = space_state.intersect_ray(pos, current_pos_iter, [playerRoot]) # ignore player
 		pos = current_pos_iter
 		if result:
 			#print("Hit at point: ", result.position)
 			#points.append(result.position)
-			#break
-			pass
+			break
 			
 	if len(points) < 1:
 		points.append(current_pos_iter)
-	#print("")
 
 
 
@@ -50,12 +50,21 @@ func _ready():
 	
 	
 func _process(_delta):
-	update()
+	update() # ensure _draw gets called every frame
+	
+func draw_X(pos: Vector2, size: float, color: Color):
+	var offset1 = Vector2(1,1) * size
+	draw_line(pos + offset1, pos - offset1, color)
+	var offset2 = Vector2(-1, 1) * size
+	draw_line(pos + offset2, pos - offset2, color)
+	
+	
 func _draw():
 	#print("drawing: " + str(curve.get_baked_points()))
 	#print("num points " + str(len(curve.get_baked_points())))
 	for i in range(len(points)-1):
 		draw_line(to_local(points[i]), to_local(points[i+1]), Color.red)
+	draw_X(to_local(points[-1]), 4.0, Color.white)
 		#draw_circle(to_local(points[i]), 1.0, Color.red)
 	#draw_polyline(curve.get_baked_points(), Color.red, 2.0)
 
