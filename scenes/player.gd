@@ -211,7 +211,7 @@ func fnStateMoving(delta: float) -> void:
 		nSpriteAmogus.visible = false
 		# Grayson: Toggle jump predictor on when moving
 		JumpPredictor.visible = true
-		JumpPredictor.SetJumpEndingPos(delta, global_position, vVelocity, vGravity, fGravity, fJumpForce)
+		JumpPredictor.SetJumpEndingPos(delta, global_position, vVelocity, vGravity, fGravity, fJumpForce, fMaxSpeed)
 		
 	if Input.is_action_just_released("btn_main"):
 		JumpPredictor.visible = false
